@@ -16,12 +16,7 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class IterativeDFSMaze extends Canvas {
-	// X and y limits are interchanged
-// public final static int xlimit=12;
-// public final static int ylimit=12;
-// public final static int xgoal=8;
-//public final static int ygoal=6;
-//public final static int blockSize=30;
+	// X and y are interchanged everywhere
 	public final static int xlimit = 17;
 	public final static int ylimit = 17;
 
@@ -31,36 +26,13 @@ public class IterativeDFSMaze extends Canvas {
 	public final static int blockSize = 29;
 //Keep speed >=25
 //Increasing value decreases speed
-	public final static int algoSpeed = 1;
+	public final static int algoSpeed = 0;
 
 	public static int xgoal = 0;
 	public static int ygoal = 0;
 
 	public static ArrayList<Node> listNodes;
 	static int once = 0;
-//    static int[][] maze=
-//       {{0,0,0,0,0},
-//        {0,1,1,0,0},
-//        {1,0,0,1,0},
-//        {1,1,0,1,0},
-//        {1,0,0,5,0},
-//        {0,0,0,0,0}
-//       };
-
-//    static int[][] maze=
-//       {{0,0,1,0,1,0,0,0,1,0,0,0},
-//        {1,0,1,1,1,1,0,1,1,1,0,0},
-//        {1,0,0,1,0,1,1,1,1,1,1,0},
-//        {1,1,0,1,0,1,0,0,0,0,0,1},
-//        {1,0,0,0,0,0,0,1,1,1,0,1},
-//        {0,0,0,1,0,1,0,0,1,1,0,1},
-//        {0,1,0,1,1,1,0,0,1,0,1,0},
-//        {1,1,0,0,0,1,1,0,0,0,0,1},
-//        {0,1,0,0,1,0,5,0,0,1,0,1},
-//        {0,0,1,0,0,0,0,0,0,1,1,1},
-//        {0,0,1,1,1,0,0,0,0,0,0,0},
-//        {0,0,1,0,0,0,0,0,0,0,0,0}
-//       };
 
 	static int[][] maze;
 
@@ -318,6 +290,7 @@ public class IterativeDFSMaze extends Canvas {
 			}
 
 		}
+		maze[root.getX()][root.getY()] = 0;
 
 		listNodes.remove(root);
 		try {
