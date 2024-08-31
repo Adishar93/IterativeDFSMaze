@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -23,27 +24,19 @@ public class IterativeDFSMaze extends Canvas {
 //public final static int blockSize=30;
 	public final static int xlimit = 17;
 	public final static int ylimit = 17;
-	
+
 	// 0f to 1f
 	public final static float percentageBarriers = 0.4f;
 //Vary size of maze
 	public final static int blockSize = 29;
 //Keep speed >=25
 //Increasing value decreases speed
-	public final static int algoSpeed = 50;
+	public final static int algoSpeed = 1;
 
-//Constants
-	public final static int LEFT = 0;
-	public final static int RIGHT = 1;
-	public final static int TOP = 2;
-	public final static int BOTTOM = 3;
-	public final static int START = 4;
-	
 	public static int xgoal = 0;
 	public static int ygoal = 0;
 
 	public static ArrayList<Node> listNodes;
-	public static Set<String> coordinateSet;
 	static int once = 0;
 //    static int[][] maze=
 //       {{0,0,0,0,0},
@@ -74,7 +67,6 @@ public class IterativeDFSMaze extends Canvas {
 	public static void main(String[] args) {
 		maze = generateRandomMaze(xlimit, ylimit);
 		listNodes = new ArrayList<>();
-		coordinateSet = new HashSet<String>();
 		IterativeDFSMaze m = new IterativeDFSMaze();
 
 		JFrame f = new JFrame();
@@ -87,97 +79,100 @@ public class IterativeDFSMaze extends Canvas {
 
 		int iter = 1;
 		while (true) {
-			iterateOverDFS(new Node(0, 0, 1), iter, 1, START);
+			int[][] mazeCopy = clone2dArray(maze);
+			iterateOverDFS(new Node(0, 0, 1), mazeCopy, iter, 1);
 			iter++;
 		}
 
 	}
-	
+
 	public static int[][] generateRandomMaze(int xlimit, int ylimit) {
 		int[][] maze = new int[xlimit][ylimit];
 		int countBarriers = 0;
-		int total = xlimit*ylimit;
+		int total = xlimit * ylimit;
 		Random random = new Random();
 		boolean randomPlacementSlower = true;
-		
-		//Randomly set goal
-		while(xgoal<5 && ygoal<5) {
+
+		// Randomly set goal
+		while (xgoal < 5 && ygoal < 5) {
 			xgoal = ThreadLocalRandom.current().nextInt(0, xlimit);
 			ygoal = ThreadLocalRandom.current().nextInt(0, ylimit);
 		}
 		maze[xgoal][ygoal] = 5;
-		
-		
-		//Find random path and mark those cells
+
+		// Find random path and mark those cells
 		int pathx = 0, pathy = 0;
 		int pathMarker = -1;
-		while(true) {
+		while (true) {
 			pathx = 0;
 			pathy = 0;
 			pathMarker--;
-			while(maze[pathx][pathy]!=5 && (isValidMove(pathx, pathy+1, maze, pathMarker) || isValidMove(pathx+1, pathy, maze, pathMarker) || isValidMove(pathx-1, pathy, maze, pathMarker) || isValidMove(pathx, pathy-1, maze, pathMarker)) ) {
+			while (maze[pathx][pathy] != 5 && (isValidMove(pathx, pathy + 1, maze, pathMarker)
+					|| isValidMove(pathx + 1, pathy, maze, pathMarker)
+					|| isValidMove(pathx - 1, pathy, maze, pathMarker)
+					|| isValidMove(pathx, pathy - 1, maze, pathMarker))) {
 				int direction = ThreadLocalRandom.current().nextInt(0, 4);
-				switch(direction) {
+				switch (direction) {
 				case 0:
-					if(isValidMove(pathx+1, pathy, maze, pathMarker)) {
+					if (isValidMove(pathx + 1, pathy, maze, pathMarker)) {
 						maze[pathx][pathy] = pathMarker;
-						pathx+=1;
+						pathx += 1;
 					}
 					break;
 				case 1:
-					if(isValidMove(pathx, pathy+1, maze, pathMarker))
-					{
+					if (isValidMove(pathx, pathy + 1, maze, pathMarker)) {
 						maze[pathx][pathy] = pathMarker;
-						pathy+=1;
+						pathy += 1;
 					}
 					break;
 				case 2:
-					if(isValidMove(pathx-1, pathy, maze, pathMarker)) {
+					if (isValidMove(pathx - 1, pathy, maze, pathMarker)) {
 						maze[pathx][pathy] = pathMarker;
-						pathx-=1;
+						pathx -= 1;
 					}
 					break;
 				case 3:
-					if(isValidMove(pathx, pathy-1, maze, pathMarker)) {
+					if (isValidMove(pathx, pathy - 1, maze, pathMarker)) {
 						maze[pathx][pathy] = pathMarker;
-						pathy-=1;
+						pathy -= 1;
 					}
 					break;
 				default:
 					;
 				}
 			}
-			if(maze[pathx][pathy]==5)
-					break;
+			if (maze[pathx][pathy] == 5)
+				break;
 		}
-		
+
 		int placementTries = 0;
-		
-		while(countBarriers/(double)total < percentageBarriers && placementTries<100) {
-		for(int i=0;i<xlimit;i++) {
-			for(int j=0;j<ylimit;j++) {
-				if(i == 0 && j == 0) {
-					continue;
-				}
-				if(countBarriers/(double)total < percentageBarriers && maze[i][j]!=pathMarker && maze[i][j]<=0) {
-					randomPlacementSlower=!randomPlacementSlower;
-				    if(random.nextBoolean() && randomPlacementSlower) {
-				    	countBarriers++;
-				    	maze[i][j] = 1;
-				    }
+
+		while (countBarriers / (double) total < percentageBarriers && placementTries < 100) {
+			for (int i = 0; i < xlimit; i++) {
+				for (int j = 0; j < ylimit; j++) {
+					if (i == 0 && j == 0) {
+						continue;
+					}
+					if (countBarriers / (double) total < percentageBarriers && maze[i][j] != pathMarker
+							&& maze[i][j] <= 0) {
+						randomPlacementSlower = !randomPlacementSlower;
+						if (random.nextBoolean() && randomPlacementSlower) {
+							countBarriers++;
+							maze[i][j] = 1;
+						}
+					}
 				}
 			}
-		}
-		placementTries++;
+			placementTries++;
 		}
 		return maze;
 	}
-	
+
 	public static boolean isValidMove(int x, int y, int[][] maze, int pathMarker) {
-		if(x<0 || x>=xlimit || y<0 || y>=ylimit) {
+		if (x < 0 || x >= xlimit || y < 0 || y >= ylimit) {
 			return false;
 		}
-		if(maze[x][y] == pathMarker) {
+		if (maze[x][y] == pathMarker) {
 			return false;
 		}
 		return true;
@@ -248,91 +243,83 @@ public class IterativeDFSMaze extends Canvas {
 
 	}
 
-	public static void iterateOverDFS(Node root, int limit, int level, int direction) {
-//       if(root==null)
-//       {
-//           root=new Node(0,0,level);
-//           listNodes.add(root);
-//       }
-//       else
-//       {
+	public static int[][] clone2dArray(int[][] original) {
+		int[][] clone = new int[original.length][];
+		for (int i = 0; i < original.length; i++) {
+			clone[i] = Arrays.copyOf(original[i], original[i].length);
+		}
+		return clone;
+	}
+
+	public static void iterateOverDFS(Node root, int[][] maze, int limit, int level) {
+		if (level > limit) {
+			return;
+		}
+
+		int visitedMarker = 10000;
 		listNodes.add(root);
-		coordinateSet.add(root.getX() + "," + root.getY());
+
 		try {
 			Thread.sleep(algoSpeed);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 		System.out.println("X: " + root.getX() + " Y: " + root.getY() + "Limit: " + limit);
 
 		if (root.getX() == xgoal && root.getY() == ygoal) {
 			System.out.println("Goal Found! at limit " + limit);
 			try {
-				Thread.sleep(10000);
+				Thread.sleep(100000);
+				System.exit(0);
 			} catch (Exception e) {
 				System.err.println("Error while suspending thread");
 			}
 		}
+		maze[root.getX()][root.getY()] = visitedMarker;
 
-		level++;
-//           if(root.getLevel()==limit)
-//           {
-//               
-//           }
-//           else
-//           {
-		if (root.getLeftChild() == null && direction != LEFT) {
-			if (root.getX() != 0) {
-				if (maze[root.getX() - 1][root.getY()] != 1
-						&& !coordinateSet.contains((root.getX() - 1) + "," + root.getY())) {
-					root.setLeftChild(new Node(root.getX() - 1, root.getY(), level));
+		if (root.getLeftChild() == null) {
+			if (root.getX() - 1 >= 0 && maze[root.getX() - 1][root.getY()] != 1
+					&& maze[root.getX() - 1][root.getY()] != visitedMarker) {
+				root.setLeftChild(new Node(root.getX() - 1, root.getY(), level+1));
 
-					if (level - 1 < limit) {
-						iterateOverDFS(root.getLeftChild(), limit, level, RIGHT);
-					}
-				}
+				iterateOverDFS(root.getLeftChild(), maze, limit, level+1);
+
+			}
+
+		}
+		if (root.getRightChild() == null) {
+
+			if (root.getX() + 1 < xlimit && maze[root.getX() + 1][root.getY()] != 1
+					&& maze[root.getX() + 1][root.getY()] != visitedMarker) {
+				root.setRightChild(new Node(root.getX() + 1, root.getY(), level+1));
+
+				iterateOverDFS(root.getRightChild(), maze, limit, level+1);
+
 			}
 		}
-		if (root.getRightChild() == null && direction != RIGHT) {
-			if (root.getX() != xlimit - 1) {
-				if (maze[root.getX() + 1][root.getY()] != 1
-						&& !coordinateSet.contains((root.getX() + 1) + "," + root.getY())) {
-					root.setRightChild(new Node(root.getX() + 1, root.getY(), level));
+		if (root.getTopChild() == null) {
 
-					if (level - 1 < limit) {
-						iterateOverDFS(root.getRightChild(), limit, level, LEFT);
-					}
-				}
+			if (root.getY() - 1 >= 0 && maze[root.getX()][root.getY() - 1] != 1
+					&& maze[root.getX()][root.getY() - 1] != visitedMarker) {
+				root.setTopChild(new Node(root.getX(), root.getY() - 1, level+1));
+
+				iterateOverDFS(root.getTopChild(), maze, limit, level+1);
+
 			}
 		}
-		if (root.getTopChild() == null && direction != TOP) {
-			if (root.getY() != 0) {
-				if (maze[root.getX()][root.getY() - 1] != 1
-						&& !coordinateSet.contains(root.getX() + "," + (root.getY() - 1))) {
-					root.setTopChild(new Node(root.getX(), root.getY() - 1, level));
+		if (root.getBottomChild() == null) {
 
-					if (level - 1 < limit) {
-						iterateOverDFS(root.getTopChild(), limit, level, BOTTOM);
-					}
-				}
-			}
-		}
-		if (root.getBottomChild() == null && direction != BOTTOM) {
-			if (root.getY() != ylimit - 1) {
-				if (maze[root.getX()][root.getY() + 1] != 1
-						&& !coordinateSet.contains(root.getX() + "," + (root.getY() + 1))) {
-					root.setBottomChild(new Node(root.getX(), root.getY() + 1, level));
+			if (root.getY() + 1 < ylimit && maze[root.getX()][root.getY() + 1] != 1
+					&& maze[root.getX()][root.getY() + 1] != visitedMarker) {
+				root.setBottomChild(new Node(root.getX(), root.getY() + 1, level+1));
 
-					if (level - 1 < limit) {
-						iterateOverDFS(root.getBottomChild(), limit, level, TOP);
-					}
-				}
+				iterateOverDFS(root.getBottomChild(), maze, limit, level+1);
+
 			}
+
 		}
 
 		listNodes.remove(root);
-		coordinateSet.remove(root.getX() + "," + root.getY());
 		try {
 			Thread.sleep(algoSpeed);
 		} catch (Exception e) {
